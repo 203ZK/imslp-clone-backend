@@ -21,19 +21,31 @@
 // }
 
 export async function getScoreByLink(req, res) {
-    const { encodedLink } = req.body;
+    const { imslpKey, link } = req.body;
+
+    const prefix = link.slice(8, 13) + "IMSLP";
+    const suffix = "-" + link.slice(13);
 
     const mirrors = [
         "https://vmirror.imslp.org/files/imglnks/usimg/",
         "https://imslp.eu/files/imglnks/euimg/",
     ];
 
+    const links = [
+        prefix + imslpKey + suffix,
+        prefix + "0" + imslpKey + suffix
+    ];
     let foundUrl = "";
 
-    for (let mirror of mirrors) {
-        const url = mirror + encodedLink;
-        const response = await fetch(url, { method: "HEAD" });
-        if (response.ok) { foundUrl = url; }
+    for (let link of links) {
+        for (let mirror of mirrors) {
+            const url = mirror + link;
+            const response = await fetch(url, { method: "HEAD" });
+            if (response.ok) {
+                foundUrl = url;
+                break;
+            }
+        }
     }
     
     res.send({ "link": foundUrl });
